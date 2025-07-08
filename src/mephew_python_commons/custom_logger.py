@@ -28,8 +28,8 @@ def get_custom_logger(
     name: str,
     *,
     level: int,
-    error_log_file_name: str = "simple485.error.log",
-    log_file_name: str = "simple485.log",
+    error_log_file_prefix: str,
+    log_file_prefix: str,
     file_log_formatter: logging.Formatter = default_file_log_formatter,
     stream_log_formatter: logging.Formatter = default_stream_log_formatter,
     backup_count: int = 7,
@@ -49,10 +49,8 @@ def get_custom_logger(
     Args:
         name (str): The name of the logger, typically `__name__`
         level (int): The minimum logging level for the logger (e.g., logging.INFO)
-        error_log_file_name (str, optional): The file path for error logs
-            Defaults to "simple485.error.log"
-        log_file_name (str, optional): The file path for general logs
-            Defaults to "simple485.log"
+        error_log_file_prefix (str): The file prefix for error logs. Format: <prefix>.error.log
+        log_file_prefix (str): The file prefix for general logs. Format: <prefix>.log
         file_log_formatter (logging.Formatter, optional): The formatter for
             file-based logs. Defaults to `default_file_log_formatter`
         stream_log_formatter (logging.Formatter, optional): The formatter for
@@ -67,14 +65,14 @@ def get_custom_logger(
     """
     # Handler for writing ERROR level logs to a separate, rotated file.
     error_log_file_handler = logging.handlers.TimedRotatingFileHandler(
-        error_log_file_name, when="midnight", backupCount=backup_count, encoding=encoding
+        f"{error_log_file_prefix}.error.log", when="midnight", backupCount=backup_count, encoding=encoding
     )
     error_log_file_handler.setFormatter(file_log_formatter)
     error_log_file_handler.setLevel(logging.ERROR)
 
     # Handler for writing all logs (at the specified level) to a general, rotated file.
     general_log_file_handler = logging.handlers.TimedRotatingFileHandler(
-        log_file_name, when="midnight", backupCount=backup_count, encoding=encoding
+        f"{log_file_prefix}.log", when="midnight", backupCount=backup_count, encoding=encoding
     )
     general_log_file_handler.setFormatter(file_log_formatter)
 
