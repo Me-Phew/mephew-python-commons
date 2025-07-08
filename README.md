@@ -21,69 +21,82 @@ This library aims to provide a collection of useful, standalone utilities.
 
 ### Custom Logger
 
-The `logger_factory` module provides a `LoggerFactory` class to configure and create robust loggers for your application. This pattern allows you to set up your logging configuration (like file paths and rotation settings) once and then easily get standardized logger instances anywhere in your code.
+The `logger_factory` module provides a `LoggerFactory` class to configure and create robust loggers for your application. This pattern allows you to set up default logging behavior (like file paths, formatters, and rotation) once and then easily get standardized logger instances anywhere in your code.
 
 **Features:**
 
--   **Centralized Configuration:** Instantiate the factory once with your desired settings (file prefixes, backup count) and reuse it.
+-   **Centralized Defaults:** Instantiate the factory once with your application's default settings using a single `log_files_prefix`.
+-   **Per-Logger Overrides:** Flexibly override the default file names or formatters for specific loggers when needed, giving you fine-grained control.
 -   **Console Logging:** Logs messages to the standard console (stream).
--   **General File Logging:** Logs all messages (from the specified level and up) to a general log file (e.g., `my_app.log`).
--   **Dedicated Error Logging:** Logs only `ERROR` level messages and higher to a separate error log file (e.g., `my_app.error.log`), making it easy to isolate critical issues.
--   **Log Rotation:** Automatically rotates log files daily at midnight, preventing them from growing indefinitely.
--   **Customizable:** Easily change log levels, formatters, and backup counts.
+-   **General File Logging:** Logs all messages (from the specified level up) to a general log file (e.g., `app.log`).
+-   **Dedicated Error Logging:** Logs only `ERROR` level messages and higher to a separate error log file (e.g., `app.error.log`), making it easy to isolate critical issues.
+-   **Log Rotation:** Automatically rotates log files daily at midnight.
 -   **Idempotent:** Prevents duplicate handlers if `get_logger` is called multiple times for the same logger name.
 
 ## Usage Example
 
-Here's how to use the `LoggerFactory` in your project. The best practice is to create the factory instance in a central configuration module.
+The best practice is to create a single `LoggerFactory` instance in a central configuration module and import it wherever you need a logger.
 
 #### 1. Configure the Factory (e.g., in `config.py`)
 
-Create a single factory instance that your entire application can share. This is where you define the log file locations.
+Create the factory instance that your entire application will share. This is where you define the default behavior for all loggers.
 
 ```python
 # config.py
 from mephew_python_commons.logger_factory import LoggerFactory
 
-# Create and configure the factory once for your application.
-# This instance will be imported by other modules.
+# Create and configure the factory once.
+# The `log_files_prefix` will be used to create `logs/app.log` and `logs/app.error.log`.
 logger_factory = LoggerFactory(
-    log_file_prefix="logs/my_app",
-    error_log_file_prefix="logs/my_app_errors"
+    log_files_prefix="logs/app"
 )
 ```
 
-#### 2. Use the Factory in Your Application (e.g., in `main.py`)
+#### 2. Use the Factory in Your Application
 
-Import the factory instance and use it to get a logger specific to the current module.
+Import the factory instance and use its `get_logger` method. You can either use the defaults or provide specific overrides.
 
 ```python
 # main.py
 import logging
 from config import logger_factory # Import the pre-configured factory
 
-# Get a logger for this specific module.
+# --- Example 1: Get a logger using factory defaults ---
 # The name is typically __name__, which helps in tracking log origins.
-logger = logger_factory.get_logger(__name__, level=logging.INFO)
+main_logger = logger_factory.get_logger(__name__, level=logging.INFO)
 
-# Use the logger to record events
-logger.debug("This is a debug message. It won't be shown because level is INFO.")
-logger.info("Application has started successfully.")
-logger.warning("The disk space is running low.")
-logger.error("Failed to connect to the database. This will go to all logs.")
+main_logger.info("Application has started successfully.")
+main_logger.error("Failed to connect to the database.")
 
+
+# --- Example 2: Get a logger with custom overrides for a specific task ---
+# This logger will write to different files than the default.
+worker_logger = logger_factory.get_logger(
+    "worker_process",
+    level=logging.DEBUG,
+    log_file_name="logs/worker.log",
+    error_log_file_name="logs/worker.error.log"
+)
+
+worker_logger.debug("Starting a long-running task...")
 try:
     result = 1 / 0
 except ZeroDivisionError:
-    # exc_info=True adds the full stack trace to the log message.
-    logger.exception("An unhandled exception occurred!")
+    worker_logger.exception("A critical error occurred in the worker!")
 
-print("\nCheck your console output, 'logs/my_app.log', and 'logs/my_app_errors.error.log' files.")
-
+print("\nCheck your console output and the log files in the 'logs/' directory.")
 ```
 
 ### What Happens:
 
--   **Console Output:** All messages from `INFO` level and up will be printed to your console with a simple timestamp.
--   **`logs/my_app.log`:** This file will contain the `INFO`, `WARNING`, `ERROR`, and `EXCEPTION` messages, with detailed timestamps.
--   **`logs/my_app_errors.error.log`:** This file will *only* contain the `ERROR` and `EXCEPTION` messages, making it easy to find critical failures.
+-   **Console Output:** All messages from `INFO` level and up will be printed to your console.
+-   **`logs/app.log`:** This file will contain the `INFO` and `ERROR` messages from `main_logger`.
+    -   `Application has started successfully.`
+    -   `Failed to connect to the database.`
+-   **`logs/app.error.log`:** This file will *only* contain the `ERROR` message from `main_logger`.
+    -   `Failed to connect to the database.`
+-   **`logs/worker.log`:** This file contains all messages from `worker_logger`.
+    -   `Starting a long-running task...`
+    -   `A critical error occurred in the worker!` (with stack trace)
+-   **`logs/worker.error.log`:** This file *only* contains the `EXCEPTION` message from `worker_logger`.
+    -   `A critical error occurred in the worker!` (with stack trace)
