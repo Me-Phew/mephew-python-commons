@@ -1,0 +1,13 @@
+[project]
+name = "mephew-python-commons"
+version = "1.0.0"
+description = "Common utilities for Python projects"
+authors = [{ name="Mateusz Basiaga", email="basmateusz@wp.pl" }]
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
