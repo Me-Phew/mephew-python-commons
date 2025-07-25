@@ -6,7 +6,6 @@ support for console logging and general/error-specific rotated log files.
 """
 
 import logging
-import logging.handlers
 import threading
 
 from concurrent_log_handler import ConcurrentTimedRotatingFileHandler
