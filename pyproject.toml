@@ -4,6 +4,9 @@ version = "1.0.0"
 description = "Common utilities for Python projects"
 requires-python = ">=3.7"
 authors = [{ name="Mateusz Basiaga", email="basmateusz@wp.pl" }]
+dependencies = [
+    "concurrent-log-handler>=0.9.28",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]

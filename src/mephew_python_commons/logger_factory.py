@@ -7,6 +7,9 @@ support for console logging and general/error-specific rotated log files.
 
 import logging
 import logging.handlers
+import threading
+
+from concurrent_log_handler import ConcurrentTimedRotatingFileHandler
 
 class LoggerFactory:
     """A factory for creating and configuring standardized logger instances."""
@@ -57,6 +60,8 @@ class LoggerFactory:
         self._file_log_formatter = file_log_formatter
         self._stream_log_formatter = stream_log_formatter
 
+        self._lock = threading.Lock()
+
     def get_logger(
         self,
         name: str,
@@ -87,44 +92,50 @@ class LoggerFactory:
         Returns:
             logging.Logger: A configured logger instance.
         """
-        # Determine the final configuration, using overrides if provided, otherwise factory defaults.
-        final_log_file_name = log_file_name or f"{self._log_files_prefix}.log"
-        final_error_log_file_name = error_log_file_name or f"{self._log_files_prefix}.error.log"
-        final_file_formatter = file_log_formatter or self._file_log_formatter
-        final_stream_formatter = stream_log_formatter or self._stream_log_formatter
+        with self._lock:
+            # Determine the final configuration, using overrides if provided, otherwise factory defaults.
+            final_log_file_name = log_file_name or f"{self._log_files_prefix}.log"
+            final_error_log_file_name = error_log_file_name or f"{self._log_files_prefix}.error.log"
+            final_file_formatter = file_log_formatter or self._file_log_formatter
+            final_stream_formatter = stream_log_formatter or self._stream_log_formatter
 
-        logger = logging.getLogger(name)
-        logger.setLevel(level)
+            logger = logging.getLogger(name)
 
-        # Add handlers only if they haven't been added before to prevent duplicate logs.
-        if logger.handlers:
+            if logger.handlers:
+                if logger.level > level:
+                    logger.setLevel(level)
+
+                # Skip the rest of the configuration if the logger already has handlers to avoid duplicate handlers.
+                return logger
+
+            logger.setLevel(level)
+            logger.propagate = False
+
+            # Handler for writing ERROR level logs to a separate, rotated file.
+            error_log_file_handler = ConcurrentTimedRotatingFileHandler(
+                final_error_log_file_name,
+                when="midnight",
+                backupCount=self._backup_count,
+                encoding=self._encoding,
+            )
+            error_log_file_handler.setFormatter(final_file_formatter)
+            error_log_file_handler.setLevel(logging.ERROR)
+
+            # Handler for writing all logs to a general, rotated file.
+            general_log_file_handler = ConcurrentTimedRotatingFileHandler(
+                final_log_file_name,
+                when="midnight",
+                backupCount=self._backup_count,
+                encoding=self._encoding,
+            )
+            general_log_file_handler.setFormatter(final_file_formatter)
+
+            # Handler for writing logs to the console/stream (e.g., stdout).
+            stream_handler = logging.StreamHandler()
+            stream_handler.setFormatter(final_stream_formatter)
+
+            logger.addHandler(general_log_file_handler)
+            logger.addHandler(error_log_file_handler)
+            logger.addHandler(stream_handler)
+
             return logger
-
-        # Handler for writing ERROR level logs to a separate, rotated file.
-        error_log_file_handler = logging.handlers.TimedRotatingFileHandler(
-            final_error_log_file_name,
-            when="midnight",
-            backupCount=self._backup_count,
-            encoding=self._encoding,
-        )
-        error_log_file_handler.setFormatter(final_file_formatter)
-        error_log_file_handler.setLevel(logging.ERROR)
-
-        # Handler for writing all logs to a general, rotated file.
-        general_log_file_handler = logging.handlers.TimedRotatingFileHandler(
-            final_log_file_name,
-            when="midnight",
-            backupCount=self._backup_count,
-            encoding=self._encoding,
-        )
-        general_log_file_handler.setFormatter(final_file_formatter)
-
-        # Handler for writing logs to the console/stream (e.g., stdout).
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(final_stream_formatter)
-
-        logger.addHandler(general_log_file_handler)
-        logger.addHandler(error_log_file_handler)
-        logger.addHandler(stream_handler)
-
-        return logger
