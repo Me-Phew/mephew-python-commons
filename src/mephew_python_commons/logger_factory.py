@@ -10,6 +10,7 @@ import threading
 
 from concurrent_log_handler import ConcurrentTimedRotatingFileHandler
 
+
 class LoggerFactory:
     """A factory for creating and configuring standardized logger instances."""
 
