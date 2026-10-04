@@ -15,7 +15,7 @@ This repository contains a collection of reusable, high-quality Python modules d
   - [Usage Example](#usage-example)
     - [1. Configure the Factory (e.g., in `config.py`)](#1-configure-the-factory-eg-in-configpy)
     - [2. Use the Factory in Your Application](#2-use-the-factory-in-your-application)
-    - [What Happens:](#what-happens)
+    - [What Happens](#what-happens)
 
 ## Utilities
 
@@ -89,7 +89,7 @@ except ZeroDivisionError:
 print("\nCheck your console output and the log files in the 'logs/' directory.")
 ```
 
-### What Happens:
+### What Happens
 
 - **Console Output:** All messages from `INFO` level and up will be printed to your console.
 - **`logs/app.log`:** This file will contain the `INFO` and `ERROR` messages from `main_logger`.
