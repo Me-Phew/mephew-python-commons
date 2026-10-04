@@ -14,7 +14,7 @@ This repository contains a collection of reusable, high-quality Python modules d
     - [Custom Logger](#custom-logger)
   - [Usage Example](#usage-example)
     - [1. Configure the Factory (e.g., in `config.py`)](#1-configure-the-factory-eg-in-configpy)
-    - [2. Use the Factory in Your Application](#2-use-the-factory-in-your-application)
+      - [2. Use the Factory in Your Application](#2-use-the-factory-in-your-application)
     - [What Happens](#what-happens)
 
 ## Utilities
@@ -39,7 +39,7 @@ The `logger_factory` module provides a `LoggerFactory` class to configure and cr
 
 The best practice is to create a single `LoggerFactory` instance in a central configuration module and import it wherever you need a logger.
 
-#### 1. Configure the Factory (e.g., in `config.py`)
+### 1. Configure the Factory (e.g., in `config.py`)
 
 Create the factory instance that your entire application will share. This is where you define the default behavior for all loggers.
 
