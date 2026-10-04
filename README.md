@@ -8,12 +8,14 @@ This repository contains a collection of reusable, high-quality Python modules d
 
 ## Table of Contents
 
-- [Installation](#installation)
-- [Utilities](#utilities)
-  - [Custom Logger](#custom-logger)
-- [Usage Example](#usage-example)
-- [Contributing](#contributing)
-- [License](#license)
+- [MePhew Python Commons](#mephew-python-commons)
+  - [Table of Contents](#table-of-contents)
+  - [Utilities](#utilities)
+    - [Custom Logger](#custom-logger)
+  - [Usage Example](#usage-example)
+    - [1. Configure the Factory (e.g., in `config.py`)](#1-configure-the-factory-eg-in-configpy)
+    - [2. Use the Factory in Your Application](#2-use-the-factory-in-your-application)
+    - [What Happens:](#what-happens)
 
 ## Utilities
 
@@ -25,13 +27,13 @@ The `logger_factory` module provides a `LoggerFactory` class to configure and cr
 
 **Features:**
 
--   **Centralized Defaults:** Instantiate the factory once with your application's default settings using a single `log_files_prefix`.
--   **Per-Logger Overrides:** Flexibly override the default file names or formatters for specific loggers when needed, giving you fine-grained control.
--   **Console Logging:** Logs messages to the standard console (stream).
--   **General File Logging:** Logs all messages (from the specified level up) to a general log file (e.g., `app.log`).
--   **Dedicated Error Logging:** Logs only `ERROR` level messages and higher to a separate error log file (e.g., `app.error.log`), making it easy to isolate critical issues.
--   **Log Rotation:** Automatically rotates log files daily at midnight.
--   **Idempotent:** Prevents duplicate handlers if `get_logger` is called multiple times for the same logger name.
+- **Centralized Defaults:** Instantiate the factory once with your application's default settings using a single `log_files_prefix`.
+- **Per-Logger Overrides:** Flexibly override the default file names or formatters for specific loggers when needed, giving you fine-grained control.
+- **Console Logging:** Logs messages to the standard console (stream).
+- **General File Logging:** Logs all messages (from the specified level up) to a general log file (e.g., `app.log`).
+- **Dedicated Error Logging:** Logs only `ERROR` level messages and higher to a separate error log file (e.g., `app.error.log`), making it easy to isolate critical issues.
+- **Log Rotation:** Automatically rotates log files daily at midnight.
+- **Idempotent:** Prevents duplicate handlers if `get_logger` is called multiple times for the same logger name.
 
 ## Usage Example
 
@@ -89,14 +91,14 @@ print("\nCheck your console output and the log files in the 'logs/' directory.")
 
 ### What Happens:
 
--   **Console Output:** All messages from `INFO` level and up will be printed to your console.
--   **`logs/app.log`:** This file will contain the `INFO` and `ERROR` messages from `main_logger`.
-    -   `Application has started successfully.`
-    -   `Failed to connect to the database.`
--   **`logs/app.error.log`:** This file will *only* contain the `ERROR` message from `main_logger`.
-    -   `Failed to connect to the database.`
--   **`logs/worker.log`:** This file contains all messages from `worker_logger`.
-    -   `Starting a long-running task...`
-    -   `A critical error occurred in the worker!` (with stack trace)
--   **`logs/worker.error.log`:** This file *only* contains the `EXCEPTION` message from `worker_logger`.
-    -   `A critical error occurred in the worker!` (with stack trace)
+- **Console Output:** All messages from `INFO` level and up will be printed to your console.
+- **`logs/app.log`:** This file will contain the `INFO` and `ERROR` messages from `main_logger`.
+  - `Application has started successfully.`
+  - `Failed to connect to the database.`
+- **`logs/app.error.log`:** This file will _only_ contain the `ERROR` message from `main_logger`.
+  - `Failed to connect to the database.`
+- **`logs/worker.log`:** This file contains all messages from `worker_logger`.
+  - `Starting a long-running task...`
+  - `A critical error occurred in the worker!` (with stack trace)
+- **`logs/worker.error.log`:** This file _only_ contains the `EXCEPTION` message from `worker_logger`.
+  - `A critical error occurred in the worker!` (with stack trace)
